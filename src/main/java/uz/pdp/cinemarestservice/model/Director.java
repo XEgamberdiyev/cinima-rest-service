@@ -1,22 +1,26 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
 
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Entity(name = "directors")
-public class Director{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class Director extends AbsEntity {
 
+    @Column(nullable = false)
     private String fullName;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private AttachmentContent photo;
+    @Column(nullable = false)
+    private String bio;
+
+    @OneToOne
+    private Attachment directorPhoto;
 }

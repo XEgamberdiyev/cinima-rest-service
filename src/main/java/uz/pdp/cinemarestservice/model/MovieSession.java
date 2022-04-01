@@ -1,38 +1,33 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
-import javax.persistence.*;
-
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Entity
-public class MovieSession {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+@Getter
+@Setter
+@Entity(name = "movie_sessions")
+public class MovieSession extends AbsEntity {
 
-//    @ManyToOne
-//    private MovieAnnouncement movieAnnouncement;
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToOne()
+    private MovieAnnouncement movieAnnouncement;
 
-    @ManyToOne
+    @ManyToOne( )
     private Hall hall;
 
-    @ManyToOne
+    @ManyToOne()
     private SessionDate startDate;
 
-    @ManyToOne
+    @ManyToOne()
     private SessionTime startTime;
 
-    @ManyToOne
+    @ManyToOne()
     private SessionTime endTime;
-
-//    @OneToMany(mappedBy = "movieSession", cascade = CascadeType.ALL)
-//    private List<SessionDate> sessionDates;
-
-//    @OneToMany(mappedBy = "movieSession", cascade = CascadeType.ALL)
-//    private List<Ticket> tickets;
- }
+}

@@ -1,30 +1,33 @@
 package uz.pdp.cinemarestservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
 import javax.persistence.*;
 import java.util.List;
-
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Entity(name = "h_row")
-public class Row {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+@Getter
+@Setter
+@Entity(name = "hall_rows")
+@JsonIgnoreProperties(value = {"seatList"})
+public class Row extends AbsEntity {
 
+    @Column(nullable = false)
     private Integer number;
-
-    private String name;
 
     @ManyToOne
     private Hall hall;
 
-    @OneToMany(mappedBy = "row", cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<Seat> seat;
+    @OneToMany(mappedBy = "row", cascade = CascadeType.ALL)
+    private List<Seat> seatList;
+
+    public Row(Integer number, Hall hall) {
+        this.number = number;
+        this.hall = hall;
+    }
 }

@@ -1,19 +1,18 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
-import javax.persistence.*;
-
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Entity
-public class Seat {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+@Getter
+@Setter
+@Entity(name = "seats")
+public class Seat extends AbsEntity {
 
     @Column(nullable = false)
     private Integer number;
@@ -22,6 +21,5 @@ public class Seat {
     private Row row;
 
     @ManyToOne
-    private PriceCotegory priceCategory;
-
+    private PriceCategory priceCategories;
 }

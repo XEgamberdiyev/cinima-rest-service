@@ -1,92 +1,106 @@
 package uz.pdp.cinemarestservice.service;
 
-import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileCopyUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uz.pdp.cinemarestservice.model.Attachment;
 import uz.pdp.cinemarestservice.model.AttachmentContent;
-import uz.pdp.cinemarestservice.payLoad.ApiResponse;
-import uz.pdp.cinemarestservice.repository.AttachmentContentRepo;
-import uz.pdp.cinemarestservice.repository.AttachmentRepo;
+import uz.pdp.cinemarestservice.poyload.ApiResponse;
+import uz.pdp.cinemarestservice.repository.AttachmentContentRepository;
+import uz.pdp.cinemarestservice.repository.AttachmentRepository;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class AttachmentService {
 
-    @Autowired
-    AttachmentRepo attachmentRepo;
+    private final AttachmentRepository attachmentRepository;
+    private final AttachmentContentRepository attachmentContentRepository;
 
-    @Autowired
-    AttachmentContentRepo attachmentContentRepo;
-
-
-    @SneakyThrows
-    public Attachment upload(MultipartFile file) throws IOException {
-//        Iterator<String> fileNames = request.getFileNames();
-//        MultipartFile file = request.getFile(fileNames.next());
-        String originalFilename = file.getOriginalFilename();
-        long size = file.getSize();
-        String contentType = file.getContentType();
-        Attachment attachment = new Attachment();
-        attachment.setOriginalName(originalFilename);
-        attachment.setSize(size);
-        attachment.setContentType(contentType);
-        Attachment savedAttachment = attachmentRepo.save(attachment);
-
-        AttachmentContent attachmentContent = new AttachmentContent();
-        attachmentContent.setBytes(file.getBytes());
-        attachmentContent.setAttachment(savedAttachment);
-        attachmentContentRepo.save(attachmentContent);
-        return savedAttachment;
-    }
-
-    @SneakyThrows
-    public void getFile(Integer id, HttpServletResponse response) throws IOException {
-        Optional<Attachment> optionalAttachment = attachmentRepo.findById(id);
-        if (optionalAttachment.isPresent()) {
-            Attachment attachment = optionalAttachment.get();
-
-            Optional<AttachmentContent> optionalAttachmentContent = attachmentContentRepo.findByAttachmentId(id);
-            if (optionalAttachmentContent.isPresent()) {
-                AttachmentContent attachmentContent = optionalAttachmentContent.get();
-                response.setHeader("Content-Disposition",
-                        "attachment; filename=\"" + attachment.getOriginalName() + "\"");
-
-                response.setContentType(attachment.getContentType());
-
-                FileCopyUtils.copy(attachmentContent.getBytes(), response.getOutputStream());
-            }
-
+    public ApiResponse fileUpload(MultipartFile file) {
+        try {
+            Attachment saveAttachment = attachmentRepository.save(new Attachment(
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getSize()
+            ));
+            attachmentContentRepository.save(new AttachmentContent(file.getBytes(), saveAttachment));
+            return new ApiResponse("Successfully Uploaded!!!", true);
+        } catch (IOException e) {
+            return new ApiResponse("Error!!!", false);
         }
     }
 
-    @SneakyThrows
-    public ApiResponse uploadFile(MultipartHttpServletRequest request) throws IOException {
-        Iterator<String> fileNames = request.getFileNames();
-        MultipartFile file = request.getFile(fileNames.next());
-        String originalFilename = file.getOriginalFilename();
-        if (file != null) {
-            long size = file.getSize();
-            String contentType = file.getContentType();
-            Attachment attachment = new Attachment();
-            attachment.setOriginalName(originalFilename);
-            attachment.setSize(size);
-            attachment.setContentType(contentType);
-            Attachment savedAttachment = attachmentRepo.save(attachment);
-
-            AttachmentContent attachmentContent = new AttachmentContent();
-            attachmentContent.setBytes(file.getBytes());
-            attachmentContent.setAttachment(savedAttachment);
-            AttachmentContent save = attachmentContentRepo.save(attachmentContent);
-            return new ApiResponse("Success", true, savedAttachment);
-        }
-        return new ApiResponse("Not found", false, null);
+    public ResponseEntity<ByteArrayResource> fileDownload(UUID attachment_id) {
+        AttachmentContent attachmentContent = attachmentContentRepository.findByAttachmentId(attachment_id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(attachmentContent.getAttachment().getContentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=\"" + attachmentContent
+                        .getAttachment().getOriginalName() + "\"")
+                .body(new ByteArrayResource(attachmentContent.getBytes()));
     }
+
+    public ApiResponse getAllAttachment() {
+        List<Attachment> attachmentList = attachmentRepository.findAll();
+        if (attachmentList.size() != 0) {
+            return new ApiResponse("Success", true, attachmentList);
+        }
+        return new ApiResponse("List empty!", false);
+    }
+
+    public ApiResponse getAttachmentById(UUID id) {
+        Optional<Attachment> optionalAttachment = attachmentRepository.findById(id);
+        if (!optionalAttachment.isPresent()) {
+            return new ApiResponse("Attachment not found!", false);
+        }
+        return new ApiResponse("Success!", true, optionalAttachment.get());
+    }
+
+    public ApiResponse editAttachment(UUID id, MultipartFile file) {
+        Optional<Attachment> optionalAttachment = attachmentRepository.findById(id);
+        if (!optionalAttachment.isPresent()) {
+            return new ApiResponse("Attachment not found!", false);
+        }
+        try {
+            Attachment editAttachment = optionalAttachment.get();
+            editAttachment.setContentType(file.getContentType());
+            editAttachment.setOriginalName(file.getOriginalFilename());
+            editAttachment.setSize(file.getSize());
+            Attachment attachment = attachmentRepository.save(editAttachment);
+
+            AttachmentContent editAttachmentContent = attachmentContentRepository.getById(editAttachment.getId());
+            editAttachmentContent.setAttachment(attachment);
+            editAttachmentContent.setBytes(file.getBytes());
+            return new ApiResponse("Successfully edited!", true);
+        } catch (IOException e) {
+            return new ApiResponse("Error!!!", false);
+        }
+    }
+
+    public ApiResponse deleteAttachment(UUID id) {
+        Optional<Attachment> optionalAttachment = attachmentRepository.findById(id);
+        if (!optionalAttachment.isPresent()) {
+            return new ApiResponse("Attachment not found!!!", false);
+        }
+        try {
+            AttachmentContent attachmentContent = attachmentContentRepository.getById(id);
+            attachmentContentRepository.deleteById(attachmentContent.getId());
+            attachmentRepository.deleteById(id);
+            return new ApiResponse("Successfully deleted!", true);
+
+        } catch (Exception e) {
+            return new ApiResponse("Error!!!", false);
+        }
+    }
+
 }

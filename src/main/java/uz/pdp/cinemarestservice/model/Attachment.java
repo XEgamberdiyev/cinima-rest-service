@@ -1,27 +1,27 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
-
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Entity
-public class Attachment{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+@Getter
+@Setter
+@Entity(name = "attachments")
+public class Attachment extends AbsEntity {
 
+    @Column(nullable = false)
     private String originalName;
 
-    private long size;
-
+    @Column(nullable = false)
     private String contentType;
+
+    @Column(nullable = false)
+    private Long size;
+
+
 }

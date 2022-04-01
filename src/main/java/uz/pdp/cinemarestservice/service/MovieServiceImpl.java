@@ -1,222 +1,169 @@
 package uz.pdp.cinemarestservice.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import uz.pdp.cinemarestservice.dto.MovieDto;
+import uz.pdp.cinemarestservice.dtos.MovieDto;
 import uz.pdp.cinemarestservice.model.*;
-import uz.pdp.cinemarestservice.payLoad.ApiResponse;
+import uz.pdp.cinemarestservice.poyload.ApiResponse;
 import uz.pdp.cinemarestservice.projection.CustomMovie;
 import uz.pdp.cinemarestservice.repository.*;
-import uz.pdp.cinemarestservice.service.interfaces.MovieService;
+import uz.pdp.cinemarestservice.service.interfaces.MovieInterface;
 
-import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
-public class MovieServiceImpl implements MovieService {
+@RequiredArgsConstructor
+public class MovieServiceImpl implements MovieInterface {
 
-    @Autowired
-    MovieRepo movieRepo;
-    @Autowired
-    AttachmentRepo attachmentRepo;
-    @Autowired
-    AttachmentContentRepo attachmentContentRepo;
-    @Autowired
-    ActorRepo actorRepo;
-    @Autowired
-    GenreRepo genreRepo;
-    @Autowired
-    DistributorRepo distributorRepo;
-    @Autowired
-    AttachmentService attachmentService;
-    @Autowired
-    MovieAnnouncementRepository movieAnnouncementRepository;
+    private final MovieRepository movieRepository;
+    private final ActorRepository actorRepository;
+    private final DirectorRepository directorRepository;
+    private final DistributorRepository distributorRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final GenreRepository genreRepository;
 
     @Override
-    public ApiResponse getAllMovies() {
-        List<Movie> movies = movieRepo.findAll();
-        if (movies.size() != 0) {
-            return new ApiResponse("Success", true, movies);
-        }
-        return new ApiResponse("Not found", false, null);
-    }
-
-    @Override
-    public ApiResponse getMovieById(Integer id) {
-        Optional<Movie> optionalMovie = movieRepo.findById(id);
-        if (optionalMovie.isPresent()) {
-            Movie movie = optionalMovie.get();
-            return new ApiResponse("Success", true, movie);
-        }
-        return new ApiResponse("not found", false, null);
-    }
-
-    @Override
-    public ApiResponse addMovie(MovieDto movieDto,
-                                Integer id,
-                                MultipartFile request) throws IOException {
-        Movie movie = new Movie();
-
-        if (id != null){
-            Optional<Movie> optionalMovie = movieRepo.findById(id);
-            if (optionalMovie.isPresent()) {
-                Movie movie1 = optionalMovie.get();
-                List<Integer> actorIds = movieDto.getActorIds();
-
-                List<Actor> actorIdList = new ArrayList<>();
-                for (Integer actorId : actorIds) {
-                    Optional<Actor> optionalActor = actorRepo.findById(actorId);
-                    if (!optionalActor.isPresent()) {
-                        return new ApiResponse("Some Of Actor not found", false);
-                    }
-                    Actor actor = optionalActor.get();
-                    actorIdList.add(actor);
-                }
-
-                List<Integer> genreIds = movieDto.getGenreIds();
-
-                List<Genre> genreList = new ArrayList<>();
-                for (Integer genreId : genreIds) {
-                    Optional<Genre> optionalGenre = genreRepo.findById(genreId);
-                    if (!optionalGenre.isPresent()) {
-                        return new ApiResponse("Some Of genres not found", false);
-                    }
-                    Genre genre = optionalGenre.get();
-                    genreList.add(genre);
-                }
-
-                Integer distributorId = movieDto.getDistributorId();
-                Optional<Distributor> optionalDistributor = distributorRepo.findById(distributorId);
-                if (!optionalDistributor.isPresent()) {
-                    return new ApiResponse("Some Of distributor not found", false);
-                }
-                Distributor distributor = optionalDistributor.get();
-
-                LocalDate releaseDate = movieDto.getReleaseDate();
-
-
-
-
-
-                movie.setReleaseDate(releaseDate);
-                movie1.setTitle(movieDto.getTitle());
-                movie1.setDescription(movieDto.getDescription());
-                movie1.setDurationInMinutes(movieDto.getDurationInMinutes());
-                movie1.setTrailerVideoUrl(movieDto.getTrailerVideoUrl());
-                movie1.setGenre(genreList);
-                movie1.setMinPrice(movieDto.getMinPrice());
-                movie1.setDistributor(distributor);
-                movie1.setDistributorShareInPercent(movieDto.getDistributorShareInPercent());
-                movie1.setActor(actorIdList);
-                Attachment upload = attachmentService.upload(request);
-                movie1.setCoverImage(upload);
-//                MovieAnnouncement movieAnnouncement = new MovieAnnouncement();
-//                movieAnnouncement.setMovie(movie);
-//                movieAnnouncementRepository.save(movieAnnouncement);
-                Movie save = movieRepo.save(movie1);
-                return new ApiResponse("Success", true, save);
-            }
-        }
-
-        List<Integer> actorIds = movieDto.getActorIds();
-
-        List<Actor> actorIdList = new ArrayList<>();
-        for (Integer actorId : actorIds) {
-            Optional<Actor> optionalActor = actorRepo.findById(actorId);
-            if (!optionalActor.isPresent()) {
-                return new ApiResponse("Some Of Actor not found", false);
-            }
-            Actor actor = optionalActor.get();
-            actorIdList.add(actor);
-        }
-
-        List<Integer> genreIds = movieDto.getGenreIds();
-
-        List<Genre> genreList = new ArrayList<>();
-        for (Integer genreId : genreIds) {
-            Optional<Genre> optionalGenre = genreRepo.findById(genreId);
-            if (!optionalGenre.isPresent()) {
-                return new ApiResponse("Some Of genres not found", false);
-            }
-            Genre genre = optionalGenre.get();
-            genreList.add(genre);
-        }
-
-        Integer distributorId = movieDto.getDistributorId();
-        Optional<Distributor> optionalDistributor = distributorRepo.findById(distributorId);
-        if (!optionalDistributor.isPresent()) {
-            return new ApiResponse("Some Of distributor not found", false);
-        }
-        Distributor distributor = optionalDistributor.get();
-
-        LocalDate releaseDate = movieDto.getReleaseDate();
-
-        movie.setReleaseDate(releaseDate);
-        movie.setTitle(movieDto.getTitle());
-        movie.setDescription(movieDto.getDescription());
-        movie.setDurationInMinutes(movieDto.getDurationInMinutes());
-        movie.setTrailerVideoUrl(movieDto.getTrailerVideoUrl());
-        movie.setGenre(genreList);
-        movie.setMinPrice(movieDto.getMinPrice());
-        movie.setDistributor(distributor);
-        movie.setDistributorShareInPercent(movieDto.getDistributorShareInPercent());
-        movie.setActor(actorIdList);
-        Attachment upload = attachmentService.upload(request);
-        movie.setCoverImage(upload);
-//        MovieAnnouncement movieAnnouncement = new MovieAnnouncement();
-//        movieAnnouncement.setMovie(movie);
-        Movie save = movieRepo.save(movie);
-//        movieAnnouncementRepository.save(movieAnnouncement);
-        return new ApiResponse("Success", true, save);
-    }
-
-    @Override
-    public ApiResponse updateMovie(Integer id, MovieDto movieDto) {
-        return null;
-    }
-
-    @Override
-    public ApiResponse deleteMovie(Integer id) {
-        Optional<Movie> optionalMovie = movieRepo.findById(id);
-        if (optionalMovie.isPresent()) {
-            movieRepo.delete(optionalMovie.get());
-//            MovieAnnouncement movieAnnouncement = new MovieAnnouncement();
-//            movieAnnouncement.setMovie(optionalMovie.get());
-//            movieAnnouncementRepository.delete(movieAnnouncement);
-            return new ApiResponse("Success", true);
-        }
-        return new ApiResponse("Movie is not found", false);
-    }
-
-    @Override
-    public HttpEntity getAllMovies(int page, int size, String search, String sort, boolean direction) {
-        Pageable pageable = PageRequest.of(
-                page - 1,
-                size,
-                direction ? Sort.Direction.ASC : Sort.Direction.DESC,
-                sort
-
-        );
+    public ApiResponse getAllMovies(int page, int size, String search, String sort, boolean direction) {
+        Pageable pageable = PageRequest.of(page - 1, size, direction ? Sort.Direction.ASC : Sort.Direction.DESC, sort);
         try {
-            Page<CustomMovie> all = movieRepo.findAllByPage(
-                    pageable,
-                    search);
-
-            return ResponseEntity.ok(new ApiResponse("success", true, all));
+            Page<CustomMovie> all = movieRepository.findAllByPage(pageable, search);
+            return new ApiResponse("Success!", true, all);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse("error", false, null));
+            return new ApiResponse("Error!!!", false);
+        }
+    }
 
+    @Override
+    public ApiResponse getMovieById(UUID id) {
+        Optional<Movie> optionalMovie = movieRepository.findById(id);
+        if (optionalMovie.isPresent()) {
+            return new ApiResponse("Movie not found!", false);
+        }
+        return new ApiResponse("Success!", true, optionalMovie.get());
+    }
+
+    @Override
+    public ApiResponse addMovie(MovieDto movieDto) {
+        List<Actor> actorList = new ArrayList<>();
+        movieDto.getActors().forEach(uuid -> actorRepository.findById(uuid).ifPresent(actorList::add));
+        if (actorList.isEmpty()) {
+            return new ApiResponse("Actors is empty!!!", false);
+        }
+        List<Director> directorList = new ArrayList<>();
+        movieDto.getDirectors().forEach(uuid -> directorRepository.findById(uuid).ifPresent(directorList::add));
+        if (directorList.isEmpty()) {
+            return new ApiResponse("Directors is empty!!!", false);
+        }
+        List<Genre> genreList = new ArrayList<>();
+        movieDto.getGenres().forEach(uuid -> genreRepository.findById(uuid).ifPresent(genreList::add));
+        if (genreList.isEmpty()) {
+            return new ApiResponse("Genre is empty!!!", false);
+        }
+        Optional<Attachment> optionalAttachmentImage = attachmentRepository.findById(movieDto.getCoverImgId());
+        if (optionalAttachmentImage.isPresent()) {
+            return new ApiResponse("Cover Image not found!!!", false);
+        }
+        Optional<Attachment> optionalAttachmentTrailer = attachmentRepository.findById(movieDto.getTrailVideoId());
+        if (optionalAttachmentTrailer.isPresent()) {
+            return new ApiResponse("Trailer not found!!!", false);
+        }
+        Optional<Distributor> optionalDistributor = distributorRepository.findById(movieDto.getDistributorId());
+        if (optionalDistributor.isPresent()) {
+            return new ApiResponse("Distributor not found!!!", false);
+        }
+
+        try {
+            Movie newMovie = new Movie();
+            newMovie.setTitle(movieDto.getTitle());
+            newMovie.setDescription(movieDto.getDescription());
+            newMovie.setDurationInMinutes(movieDto.getDurationInMin());
+            newMovie.setMinPrice(movieDto.getMinPrice());
+            newMovie.setCoverImage(optionalAttachmentImage.get());
+            newMovie.setTrailerVideo(optionalAttachmentTrailer.get());
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            LocalDate date = LocalDate.parse(movieDto.getReleaseDate());
+            newMovie.setReleaseDate(date);
+            newMovie.setBudget(movieDto.getBudget());
+            newMovie.setDistributor(optionalDistributor.get());
+            newMovie.setDistributorShareInPercent(movieDto.getDistributorShareInPercentage());
+            newMovie.setActors(actorList);
+            newMovie.setDirectors(directorList);
+            newMovie.setGenres(genreList);
+            Movie saveMovie = movieRepository.save(newMovie);
+            return new ApiResponse("Success!", true, saveMovie);
+
+        } catch (Exception e) {
+            return new ApiResponse("Error!!!", false);
+        }
+    }
+
+    @Override
+    public ApiResponse editMovie(UUID id, MovieDto movieDto) {
+        Optional<Movie> optionalMovie = movieRepository.findById(id);
+        if (!optionalMovie.isPresent()) return new ApiResponse("Movie not found!", false);
+
+        List<Actor> actors = new ArrayList<>();
+        movieDto.getActors().forEach(uuid -> actorRepository.findById(uuid).ifPresent(actors::add));
+        if (actors.isEmpty()) return new ApiResponse("Actors is empty!", false);
+
+        List<Director> directors = new ArrayList<>();
+        movieDto.getDirectors().forEach(uuid -> directorRepository.findById(uuid).ifPresent(directors::add));
+        if (directors.isEmpty()) return new ApiResponse("Directors is empty!", false);
+
+        List<Genre> genres = new ArrayList<>();
+        movieDto.getGenres().forEach(uuid -> genreRepository.findById(uuid).ifPresent(genres::add));
+        if (genres.isEmpty()) return new ApiResponse("Genres is empty!", false);
+
+        Optional<Attachment> optionalAttachmentImg = attachmentRepository.findById(movieDto.getCoverImgId());
+        if (!optionalAttachmentImg.isPresent()) return new ApiResponse("Cover image is empty!", false);
+
+        Optional<Attachment> optionalAttachmentVideo = attachmentRepository.findById(movieDto.getTrailVideoId());
+        if (!optionalAttachmentVideo.isPresent()) return new ApiResponse("Trailer video is empty!", false);
+
+        Optional<Distributor> optionalDistributor = distributorRepository.findById(movieDto.getDistributorId());
+        if (!optionalDistributor.isPresent()) return new ApiResponse("Distributor is empty!", false);
+
+        try {
+            Movie movie = optionalMovie.get();
+            movie.setTitle(movieDto.getTitle());
+            movie.setDescription(movieDto.getDescription());
+            movie.setDurationInMinutes(movie.getDurationInMinutes());
+            movie.setMinPrice(movieDto.getMinPrice());
+            movie.setCoverImage(optionalAttachmentImg.get());
+            movie.setTrailerVideo(optionalAttachmentVideo.get());
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+            LocalDate date = LocalDate.parse(movieDto.getReleaseDate());
+            movie.setReleaseDate(date);
+            movie.setBudget(movieDto.getBudget());
+            movie.setDistributor(optionalDistributor.get());
+            movie.setDistributorShareInPercent(movieDto.getDistributorShareInPercentage());
+            movie.setActors(actors);
+            movie.setDirectors(directors);
+            movie.setGenres(genres);
+            Movie saveMovie = movieRepository.save(movie);
+            return new ApiResponse("Successfully edited!", true, saveMovie);
+        } catch (Exception e) {
+            return new ApiResponse("Error!!", false);
+        }
+
+    }
+
+    @Override
+    public ApiResponse deleteMovie(UUID id) {
+        try {
+            movieRepository.deleteById(id);
+            return new ApiResponse("Success!", true);
+        } catch (Exception e) {
+            return new ApiResponse("Movie not found!", false);
         }
     }
 }

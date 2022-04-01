@@ -1,22 +1,22 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
+import uz.pdp.cinemarestservice.model.enums.RoleEnum;
 
 import javax.persistence.*;
 import java.util.List;
-
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Entity
-public class Role {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+@Getter
+@Setter
+@Entity(name = "roles")
+public class Role extends AbsEntity {
 
-    private String name;
+    @Column(nullable = false, unique = true)
+    @Enumerated(EnumType.STRING)
+    private RoleEnum name;
 
     @ManyToMany
     private List<Permission> permissions;

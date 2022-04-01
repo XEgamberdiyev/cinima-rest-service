@@ -1,46 +1,55 @@
 package uz.pdp.cinemarestservice.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uz.pdp.cinemarestservice.dto.RowDto;
-import uz.pdp.cinemarestservice.payLoad.ApiResponse;
-import uz.pdp.cinemarestservice.service.RowServiceImpl;
+import uz.pdp.cinemarestservice.model.Row;
+import uz.pdp.cinemarestservice.poyload.ApiResponse;
+import uz.pdp.cinemarestservice.service.RowService;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/row")
+@RequiredArgsConstructor
 public class RowController {
-    @Autowired
-    RowServiceImpl rowService;
+
+    private final RowService rowService;
 
     @GetMapping
     public HttpEntity<?> getAllRows(){
-        ApiResponse rows = rowService.getAllRows();
-        return ResponseEntity.status(rows.isSuccess()?200:404).body(rows);
+        ApiResponse apiResponse = rowService.getAllRows();
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 204).body(apiResponse);
     }
 
-    @GetMapping("/{id}")
-    public HttpEntity<?> getRowById(@PathVariable Integer id){
-        ApiResponse rowById = rowService.getRowById(id);
-        return ResponseEntity.status(rowById.isSuccess()?200:404).body(rowById);
+    @GetMapping("/{rowId}")
+    public HttpEntity<?> getRowById(@PathVariable UUID rowId){
+        ApiResponse apiResponse = rowService.getRowById(rowId);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 409).body(apiResponse);
     }
 
-    @PostMapping
-    public HttpEntity<?> addRow(Integer id, @RequestBody RowDto rowDto){
-        ApiResponse response = rowService.addAndAddRow(rowDto, id);
-        return ResponseEntity.status(response.isSuccess()?200:404).body(response);
+    @GetMapping("/getRowByHollId/{hallId}")
+    public HttpEntity<?> getRowByHallId(@PathVariable UUID hallId){
+        ApiResponse apiResponse = rowService.getRowByHallId(hallId);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 409).body(apiResponse);
     }
 
-    @PutMapping("/{id}")
-    public HttpEntity<?> updateRow(@PathVariable Integer id, @RequestBody RowDto rowDto){
-        ApiResponse response = rowService.addAndAddRow(rowDto, id);
-        return ResponseEntity.status(response.isSuccess()?200:404).body(response);
+    @PostMapping("/{hallId}")
+    public HttpEntity<?> addRow(@PathVariable UUID hallId, @RequestBody Row row){
+        ApiResponse apiResponse = rowService.addRow(hallId, row);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 409).body(apiResponse);
     }
 
-    @DeleteMapping("/{id}")
-    public HttpEntity<?> deleteRow(@PathVariable Integer id){
-        ApiResponse response = rowService.deleteRow(id);
-        return ResponseEntity.status(response.isSuccess()?200:404).body(response);
+    @PutMapping("/{hall_id}/{row_id}")
+    public HttpEntity<?> editRow(@PathVariable UUID hall_id, @PathVariable UUID row_id, @RequestBody Row row){
+        ApiResponse apiResponse = rowService.editRow(hall_id, row_id, row);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 409).body(apiResponse);
+    }
+
+    @DeleteMapping("/{row_id}")
+    public HttpEntity<?> deleteRow(@PathVariable UUID row_id){
+        ApiResponse apiResponse = rowService.deleteRow(row_id);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 409).body(apiResponse);
     }
 }

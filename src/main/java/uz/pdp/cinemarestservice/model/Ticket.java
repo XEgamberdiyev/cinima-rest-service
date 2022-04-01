@@ -1,35 +1,37 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import uz.pdp.cinemarestservice.model.enam.TicketStatus;
+import lombok.*;
+import lombok.experimental.PackagePrivate;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
+import uz.pdp.cinemarestservice.model.enums.TicketStatus;
 
 import javax.persistence.*;
-
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Entity
-public class Ticket {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @ManyToOne
-    private MovieSession movieSession;
-
-    @Enumerated(EnumType.STRING)
-    private TicketStatus status;
+@Getter
+@Setter
+@Entity(name = "tickets")
+@PackagePrivate
+public class Ticket extends AbsEntity {
 
     @OneToOne
-    private Seat seat;
+    MovieSession movieSession;
 
-    private String qrCode;
+    @OneToOne
+    Seat seat;
 
-    private double price;
+    @OneToOne
+    Attachment qrCode;
 
+    @Column(nullable = false)
+    Double price;
+
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private TicketStatus ticketStatus;
+    TicketStatus status;
+
+    @ManyToOne
+    User user;
 
 }

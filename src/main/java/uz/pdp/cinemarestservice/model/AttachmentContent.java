@@ -1,22 +1,28 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
 
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@Data
-@Entity
-public class AttachmentContent {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+@Getter
+@Setter
+@Entity(name = "attachment_controller")
+public class AttachmentContent extends AbsEntity {
 
     private byte[] bytes;
 
     @OneToOne
     private Attachment attachment;
+
+    public AttachmentContent(byte[] data, Attachment attachment) {
+        this.bytes = data;
+        this.attachment = attachment;
+    }
 }
