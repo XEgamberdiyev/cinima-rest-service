@@ -1,25 +1,24 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import java.sql.Time;
 
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Entity
-public class RefundChargeFee{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
 
-    private Time intervalInMinutes;
+@Getter
+@Setter
+@Entity(name = "refund_charge_fees")
+public class RefundChargeFee extends AbsEntity {
 
-    private double percentage;
+    @Column(nullable = false)
+    private Integer intervalMinutes;
+
+    @Column(nullable = false)
+    private Double percentage;
+
 }

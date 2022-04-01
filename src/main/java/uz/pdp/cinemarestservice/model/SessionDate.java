@@ -1,20 +1,22 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import uz.pdp.cinemarestservice.model.template.AbsEntity;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import java.time.LocalDate;
 
 @EqualsAndHashCode(callSuper = true)
-@Entity(name = "session_date")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@Entity(name = "session_dates")
 public class SessionDate extends AbsEntity {
 
-   private LocalDate date;
+    @Column(nullable = false)
+    private LocalDate date;
+
+
 }

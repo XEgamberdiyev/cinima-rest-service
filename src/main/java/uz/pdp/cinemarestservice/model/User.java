@@ -1,36 +1,38 @@
 package uz.pdp.cinemarestservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
+import uz.pdp.cinemarestservice.model.enums.Gender;
 
 import javax.persistence.*;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Entity(name = "users")
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class User extends AbsEntity {
 
+    @Column(nullable = false)
     private String fullName;
 
+    @Column(nullable = false)
     private String userName;
 
+    @Column(nullable = false)
     private String password;
 
-    private LocalDate dateOfBirth;
+    private Date dateOfBirth;
 
-    @ManyToOne()
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @ManyToMany()
-    private List<Role> role;
+    @ManyToMany(cascade = CascadeType.ALL)
+    private List<Role> roles;
 
-    @ManyToMany
-    private List<Permission> permission;
+    @ManyToMany(cascade = CascadeType.ALL)
+    private List<Permission> permissions;
 }

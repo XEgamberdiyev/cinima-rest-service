@@ -1,45 +1,50 @@
 package uz.pdp.cinemarestservice.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import uz.pdp.cinemarestservice.model.Director;
-import uz.pdp.cinemarestservice.payLoad.ApiResponse;
+import uz.pdp.cinemarestservice.poyload.ApiResponse;
 import uz.pdp.cinemarestservice.service.DirectorService;
 
-import java.io.IOException;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/director")
+@RequiredArgsConstructor
 public class DirectorController {
 
-    @Autowired
-    DirectorService directorService;
+    private final DirectorService directorService;
+
     @GetMapping
-    public ApiResponse getAllDirector(){
-        return directorService.getAllDirectors();
+    public HttpEntity<?> getAllDirectors() {
+        ApiResponse apiResponse = directorService.getAllDirectors();
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 204).body(apiResponse);
     }
 
     @GetMapping("/{id}")
-    public ApiResponse getDirectorById(@PathVariable Integer id){
-        return directorService.getDirectorById(id);
+    public HttpEntity<?> getDirectorById(@PathVariable UUID id) {
+        ApiResponse apiResponse = directorService.getDirectorById(id);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 404).body(apiResponse);
     }
 
     @PostMapping
-    public ApiResponse addDirector(@RequestPart(name = "director") Director director,
-                                   @RequestPart(name = "file") MultipartFile request) throws IOException {
-        return directorService.addDirector(director, request);
+    public HttpEntity<?> addDirector(@RequestPart("file") MultipartFile file, @RequestPart("json-director") Director director) {
+        ApiResponse apiResponse = directorService.addDirector(file, director);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 209).body(apiResponse);
     }
 
     @PutMapping("/{id}")
-    public ApiResponse updateDirector(@PathVariable Integer id,
-                                      @RequestPart(name = "director") Director director,
-                                      MultipartFile file) throws IOException {
-        return directorService.updateDirector(id, director, file);
+    public HttpEntity<?> editDirector(@PathVariable UUID id, @RequestPart("file") MultipartFile file, @RequestPart("json-director") Director director) {
+        ApiResponse apiResponse = directorService.editDirector(id, file, director);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 209).body(apiResponse);
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse deleteDirector(@PathVariable Integer id){
-        return directorService.deleteDirector(id);
+    public HttpEntity<?> deleteDirector(@PathVariable UUID id) {
+        ApiResponse apiResponse = directorService.deleteDirector(id);
+        return ResponseEntity.status(apiResponse.isStatus() ? 200 : 209).body(apiResponse);
     }
 }

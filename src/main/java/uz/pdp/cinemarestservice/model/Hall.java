@@ -1,31 +1,39 @@
 package uz.pdp.cinemarestservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import uz.pdp.cinemarestservice.model.abcClass.AbsEntity;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.List;
-
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Entity
-public class Hall {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+@Getter
+@Setter
+@Entity(name = "halls")
+public class Hall extends AbsEntity {
 
+    @Column(nullable = false, unique = true)
     private String name;
 
-    private double vipAdditionalFeeInPercent;
+    private Double vipAdditionalFeeInPercent;
 
-    @OneToMany(mappedBy = "hall", cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<Row> row;
+    @OneToMany(mappedBy = "hall", cascade = CascadeType.ALL)
+    private List<Row> rowList;
 
-    @OneToMany(mappedBy = "hall", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<MovieSession> movieSessions;
+    public Hall(String name) {
+        this.name = name;
+    }
+
+    public Hall(String name, Double vipAdditionalFeeInPercent) {
+        this.name = name;
+        this.vipAdditionalFeeInPercent = vipAdditionalFeeInPercent;
+    }
+    
+    
 }

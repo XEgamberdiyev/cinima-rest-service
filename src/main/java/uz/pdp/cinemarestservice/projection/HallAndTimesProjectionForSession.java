@@ -3,19 +3,20 @@ package uz.pdp.cinemarestservice.projection;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface HallAndTimesProjectionForSession {
 
-    Integer getId();
+    UUID getId();
 
     String getName();
 
-//
+
 //    UUID getMovieAnnouncementId();
-//
+
 //    UUID getStartDateId();
 
-    @Value("#{@sessionTimeRepository.getTimesByHallIdAndAnnouncementIdAndStartDateId(target.id, target.movieAnnouncementId, target.startDateId)}")
+    @Value("#{@sessionTimeRepository.getAllTimesByHallIdAndAnnouncementIdAndStartDateId(target.id, target.movieAnnouncementId, target.startDateId)}")
     List<SessionTimeProjection> getTimes();
 
 

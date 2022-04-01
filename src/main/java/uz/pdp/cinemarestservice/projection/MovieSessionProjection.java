@@ -4,22 +4,22 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public interface MovieSessionProjection {
-//    UUID getId(); // seans id
 
-    Integer getMovieAnnouncementId(); // afisha id
+    UUID getMovieAnnouncementId(); // afisha id
 
-    Integer getMovieId();
+    UUID getMovieId();
 
     String getMovieTitle();
 
-    Integer getMovieCoverImgId();
+    UUID getMovieCoverImgId();
 
-    Integer getStartDateId();
+    UUID getStartDateId();
 
     LocalDate getStartDate();
 
-    @Value("#{@hallRepo.getHallsAndTimesByMovieAnnouncementIdAndStartDateId(target.movieAnnouncementId, target.startDateId)}")
+    @Value("#{@hallRepository.getHallsAndTimesByMovieAnnouncementIdAndStartDateId(target.movieAnnouncementId, target.startDateId)}")
     List<HallAndTimesProjectionForSession> getHalls();
 }
